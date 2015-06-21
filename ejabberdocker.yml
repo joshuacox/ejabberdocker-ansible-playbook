@@ -1,0 +1,40 @@
+---
+- name: EjabberDocker
+  hosts: ejabberdocker
+  vars:
+     admin1_contents: "{{ lookup('file', 'admin1') }}"
+     admin1_pwd_contents: "{{ lookup('file', 'admin1_pwd') }}"
+     admin2_contents: "{{ lookup('file', 'admin2') }}"
+     admin2_pwd_contents: "{{ lookup('file', 'admin2_pwd') }}"
+     tz_contents: "{{ lookup('file', 'tz') }}"
+     node_contents: "{{ lookup('file', 'node') }}"
+     domain_contents: "{{ lookup('file', 'domain') }}"
+     ip_contents: "{{ lookup('file', 'ip') }}"
+     logdir_contents: "{{ lookup('file', 'logdir') }}"
+     ejabberd_web_admin_ssl_contents: "{{ lookup('file', 'ejabberd_web_admin_ssl') }}"
+     hostname_contents: "{{ lookup('file', 'hostname') }}"
+  sudo: True
+  tasks:
+  - name: Install docker-py
+    pip: name=docker-py version=1.1.0
+  - name: EjabberDockerimage
+    docker:
+      name: ejabberdocker
+      hostname: "{{ hostname_contents }}"
+      image: rroemhild/ejabberd
+      state: reloaded
+      restart_policy: always
+      ports:
+        - "{{ ip_contents }}:5222:5222"
+        - "{{ ip_contents }}:5269:5269"
+        - "{{ ip_contents }}:5280:5280"
+        - "{{ ip_contents }}:4560:4560"
+      env:
+        XMPP_DOMAIN: "{{ domain_contents }}"
+        EJABBERD_ADMIN: "{{ admin1_contents }} {{ admin2_contents }}"
+        EJABBERD_ADMIN_PWD: "{{ admin1_pwd_contents }} {{ admin2_pwd_contents }}"
+        ERLANG_NODE: "{{ node_contents }}"
+        TZ: "{{ tz_contents }}"
+        EJABBERD_WEB_ADMIN_SSL: "{{ ejabberd_web_admin_ssl_contents }}"
+      volumes:
+      - "{{ logdir_contents }}"
